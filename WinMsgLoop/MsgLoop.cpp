@@ -54,10 +54,9 @@ int WinMsgLoop::RunMsgLoop( HACCEL hAccelTable )
     {
         const int Count = m_vecHandle.size();
         std::vector<HANDLE> vecHandle=GetHandle();
-        int iRetCode=MsgWaitForMultipleObjects( Count,(HANDLE*)vecHandle._Myfirst,FALSE,-1,QS_ALLEVENTS );
+        int iRetCode=MsgWaitForMultipleObjects( Count,(HANDLE*)vecHandle._Myfirst,FALSE,-1,QS_ALLEVENTS|QS_SENDMESSAGE );
         assert ( WAIT_FAILED!=iRetCode );
         if ( WAIT_TIMEOUT==iRetCode ) continue;
-
 
         if ( PeekMessage(&msg,NULL,0,0,PM_REMOVE) &&
              !TranslateAccelerator(msg.hwnd, hAccelTable,&msg) )
@@ -68,12 +67,10 @@ int WinMsgLoop::RunMsgLoop( HACCEL hAccelTable )
 
         }
 
-        // OK,以下是句柄的消息
-        if ( iRetCode<(int)m_vecHandle.size() )
-        {
-            std::pair<HANDLE,std::function<void(HANDLE)>> pair=m_vecHandle[iRetCode];
-            pair.second( pair.first );
-        }
+        const int HandleSignalIndex = WAIT_OBJECT_0 + iRetCode - 1;
+        assert( HandleSignalIndex>=0&&HandleSignalIndex<m_vecHandle.size() );
+        HANDLE h = m_vecHandle[HandleSignalIndex].first;
+        m_vecHandle[HandleSignalIndex].second( h );
     }
     return msg.wParam;
 }
