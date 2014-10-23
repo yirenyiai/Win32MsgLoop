@@ -68,9 +68,11 @@ int WinMsgLoop::RunMsgLoop( HACCEL hAccelTable )
         }
 
         const int HandleSignalIndex = WAIT_OBJECT_0 + iRetCode - 1;
-        assert( HandleSignalIndex>=0&&HandleSignalIndex<m_vecHandle.size() );
-        HANDLE h = m_vecHandle[HandleSignalIndex].first;
-        m_vecHandle[HandleSignalIndex].second( h );
+        if ( HandleSignalIndex>=0&&HandleSignalIndex<m_vecHandle.size() )
+        {
+            HANDLE h = m_vecHandle[HandleSignalIndex].first;
+            m_vecHandle[HandleSignalIndex].second( h );
+        }
     }
     return msg.wParam;
 }
